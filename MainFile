@@ -1,0 +1,56 @@
+from bs4 import BeautifulSoup
+import requests
+from selenium import webdriver
+import time
+import datetime
+
+url = "https://order.mcdonalds.co.il/מסעדות?in_order=1"
+response = requests.get(url)
+soup = BeautifulSoup(response.text, "html.parser")
+
+storeValue = []
+storeName = []
+for string in soup.select("option"):
+     value = list(string.attrs.values())
+     if len(value) > 0:
+          # print(value[0])
+          # print(string.text.replace(" ", "-"))
+          storeValue.append(value[0])
+          storeName.append(string.text.replace(" ", "-"))
+
+for store in range(len(storeValue)):
+     errorString = ""
+     try:
+          print("\n" + storeName[store].replace("-"," ") + " - ")
+          url = "https://order.mcdonalds.co.il/מסעדה/" + storeValue[store ] + "/" + storeName[store]
+          # driver = webdriver.Chrome("/usr/local/bin/chromedriver")
+          # driver = webdriver.Safari()
+          options = webdriver.ChromeOptions()
+          options.add_argument('headless')
+          driver = webdriver.Chrome(executable_path="/usr/local/bin/chromedriver",options=options)
+          driver.get(url)
+
+          errorString = " Probably Closed"
+          # Into Menu
+          button = driver.find_element_by_xpath("/html/body/div[3]/div/div[1]/div[2]/div/section[2]/a")
+          button.click()
+
+          time.sleep(6)
+          errorString = " Couldn't get to Deliveries"
+          # Into Deliveries
+          buttonTwo = driver.find_element_by_xpath("/html/body/div[3]/div/div[1]/div[2]/div/aside/div/div/div/div[2]/a")
+          buttonTwo.click()
+
+          time.sleep(6)
+          try:
+               AmericanIceCreamValue = driver.find_element_by_xpath("//div[@data-item='16_52']/div[@class='cposition-text-meal']/span")
+               AmericanIceCreamPrice = AmericanIceCreamValue.get_attribute('outerHTML').replace('<span class="coints-cost">', "").replace("</span>", "")
+               print("American Ice Cream - " + AmericanIceCreamPrice)
+          except:
+               print("American Ice Cream Didn't found")
+
+          driver.close()
+     except:
+          print("Error -" + errorString)
+
+          driver.close()
