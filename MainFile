@@ -54,3 +54,5 @@ for store in range(len(storeValue)):
           print("Error -" + errorString)
 
           driver.close()
+          
+driver.quit()
